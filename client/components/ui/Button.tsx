@@ -106,6 +106,7 @@ export default function Button({
                 ref={buttonRef}
                 type={type}
                 onClick={handleClick}
+                disabled={disabled}
                 className={`${baseStyles} ${currentVariantStyle} ${paddingStyle} ${disabled && "opacity-50 pointer-events-none"} ${alignment === "left" ? "justify-start" : "justify-center"}`}
             >
                 {iconName && (!loading || !children) && (

@@ -12,6 +12,7 @@ import posthog from "posthog-js";
 
 export default function Profile() {
     const router = useRouter();
+    const [creating, setCreating] = useState(false);
     const [rooms, setRooms] = useState<Room[] | null>(null);
 
     useEffect(() => {
@@ -29,7 +30,9 @@ export default function Profile() {
     }, []);
 
     const addRoom = async () => {
+        setCreating(true);
         const roomId = await createNewRoom();
+        setCreating(false);
         posthog.capture("room_created");
         router.push(`/my-rooms/${roomId}`);
     };
@@ -92,6 +95,7 @@ export default function Profile() {
             )}
 
             <Button
+                loading={creating}
                 onClick={() => addRoom()}
                 className="w-full"
                 iconName="plus"

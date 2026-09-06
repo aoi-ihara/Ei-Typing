@@ -35,7 +35,7 @@ import Shell from "@/components/layout/Shell";
 import Dialog from "@/components/ui/Dialog";
 import { deleteRoom } from "@/lib/room/delete";
 import Collapsible from "@/components/ui/Collapsible";
-import { generateWordsAction } from "@/lib/AI/actions";
+import { generateWordsAction, getGeminiUsageAction } from "@/lib/AI/actions";
 
 const EXAMPLES = [
     "高校1年生の定期テストの単語",
@@ -123,6 +123,8 @@ export default function Page({
     const [generatedWords, setGeneratedWords] = useState<Word[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState("");
+    const [isGeminiLimitReached, setIsGeminiLimitReached] = useState(false);
+    const [isGeminiUsageLoading, setIsGeminiUsageLoading] = useState(true);
 
     const [visibilityError, setVisibilityError] = useState("");
     const [isUpdatingVisibilitySettings, setIsUpdatingVisibilitySettings] =
@@ -144,6 +146,38 @@ export default function Page({
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadGeminiUsage = async () => {
+            try {
+                const usage = await getGeminiUsageAction();
+                if (!cancelled) {
+                    setIsGeminiLimitReached(usage.remaining <= 0);
+                }
+            } catch (error) {
+                console.error("Failed to load Gemini usage:", error);
+            } finally {
+                if (!cancelled) setIsGeminiUsageLoading(false);
+            }
+        };
+
+        loadGeminiUsage();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const refreshGeminiUsage = async () => {
+        try {
+            const usage = await getGeminiUsageAction();
+            setIsGeminiLimitReached(usage.remaining <= 0);
+        } catch (error) {
+            console.error("Failed to refresh Gemini usage:", error);
+        }
+    };
 
     const roomDataRef = useRef({
         roomTitle,
@@ -659,6 +693,7 @@ export default function Page({
                             setGeneratedWords([]);
                             setShowImportInput(false);
                         }}
+                        disabled={isGeminiUsageLoading || isGeminiLimitReached}
                         iconName="wandSparkles"
                     />
 
@@ -760,6 +795,7 @@ export default function Page({
                                         );
                                     } finally {
                                         setIsGenerating(false);
+                                        await refreshGeminiUsage();
                                     }
                                 }}
                                 iconName="arrowRight"
