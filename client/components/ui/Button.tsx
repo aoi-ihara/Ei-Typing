@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { IconName } from "./Icon";
 import { Icon } from "./Icon";
-import { getGeminiUsageAction } from "@/lib/AI/actions";
 
 type ButtonVariant = "default" | "primary" | "text" | "danger";
 
@@ -62,48 +61,18 @@ export default function Button({
                 : `rounded-lg ${iconName ? "pl-4.5" : "pl-5"} ${children ? "pr-5" : "pr-4.5"} py-4 gap-3`;
 
     const autoPlayAgain = children === "Play Again";
-    const isGeminiGenerateButton =
-        iconName === "arrowRight" &&
-        children === undefined &&
-        variant === "primary" &&
-        padding === "large";
-    const [geminiLimitReached, setGeminiLimitReached] = useState(false);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
     const autoPlayAgainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
         null,
     );
 
     useEffect(() => {
-        if (!isGeminiGenerateButton) return;
-
-        let cancelled = false;
-
-        const loadGeminiUsage = async () => {
-            try {
-                const usage = await getGeminiUsageAction();
-                if (!cancelled) setGeminiLimitReached(usage.remaining <= 0);
-            } catch (error) {
-                console.error("Failed to load Gemini usage:", error);
-            }
-        };
-
-        loadGeminiUsage();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [isGeminiGenerateButton]);
-
-    const effectiveDisabled =
-        disabled || (isGeminiGenerateButton && geminiLimitReached);
-
-    useEffect(() => {
-        if (!autoPlayAgain || effectiveDisabled || loading) return;
+        if (!autoPlayAgain || disabled || loading) return;
 
         autoPlayAgainTimerRef.current = setTimeout(() => {
             autoPlayAgainTimerRef.current = null;
 
-            if (!effectiveDisabled && !loading) {
+            if (!disabled && !loading) {
                 buttonRef.current?.click();
             }
         }, PLAY_AGAIN_AUTO_CLICK_DELAY_MS);
@@ -114,26 +83,15 @@ export default function Button({
                 autoPlayAgainTimerRef.current = null;
             }
         };
-    }, [autoPlayAgain, effectiveDisabled, loading]);
+    }, [autoPlayAgain, disabled, loading]);
 
-    const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (
-        event,
-    ) => {
+    const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         if (autoPlayAgainTimerRef.current) {
             clearTimeout(autoPlayAgainTimerRef.current);
             autoPlayAgainTimerRef.current = null;
         }
 
-        await onClick?.(event);
-
-        if (isGeminiGenerateButton) {
-            try {
-                const usage = await getGeminiUsageAction();
-                setGeminiLimitReached(usage.remaining <= 0);
-            } catch (error) {
-                console.error("Failed to refresh Gemini usage:", error);
-            }
-        }
+        onClick?.(event);
     };
 
     return (
@@ -141,19 +99,14 @@ export default function Button({
             className={`rounded-lg ${className}`}
             data-cursor="button"
             data-cursor-shape={
-                effectiveDisabled || loading
-                    ? "2"
-                    : variant === "text"
-                      ? "1"
-                      : "0"
+                disabled || loading ? "2" : variant === "text" ? "1" : "0"
             }
         >
             <button
                 ref={buttonRef}
                 type={type}
                 onClick={handleClick}
-                disabled={effectiveDisabled || loading}
-                className={`${baseStyles} ${currentVariantStyle} ${paddingStyle} ${effectiveDisabled && "opacity-50 pointer-events-none"} ${alignment === "left" ? "justify-start" : "justify-center"}`}
+                className={`${baseStyles} ${currentVariantStyle} ${paddingStyle} ${disabled && "opacity-50 pointer-events-none"} ${alignment === "left" ? "justify-start" : "justify-center"}`}
             >
                 {iconName && (!loading || !children) && (
                     <Icon
