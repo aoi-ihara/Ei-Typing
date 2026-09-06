@@ -1,12 +1,10 @@
 "use server";
 
 import { generateWords } from "./generateWords";
-import {
-    consumeGeminiGeneration,
-    getGeminiUsage,
-} from "./usage";
+import { consumeGeminiGeneration } from "./usage";
 
 export async function getGeminiUsageAction() {
+    const { getGeminiUsage } = await import("./usage");
     return getGeminiUsage();
 }
 
@@ -19,11 +17,7 @@ export async function generateWordsAction(theme: string) {
         throw new Error("Theme is too long");
     }
 
-    const usage = await consumeGeminiGeneration();
-    const words = await generateWords(theme);
+    await consumeGeminiGeneration();
 
-    return {
-        words,
-        usage,
-    };
+    return generateWords(theme);
 }
