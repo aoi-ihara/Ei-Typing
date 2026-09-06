@@ -1,10 +1,12 @@
 "use server";
 
 import { generateWords } from "./generateWords";
-import { consumeGeminiGeneration } from "./usage";
+import {
+    consumeGeminiGeneration,
+    getGeminiUsage,
+} from "./usage";
 
 export async function getGeminiUsageAction() {
-    const { getGeminiUsage } = await import("./usage");
     return getGeminiUsage();
 }
 
