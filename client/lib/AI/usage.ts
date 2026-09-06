@@ -3,7 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/db/server";
 import { getUser } from "@/lib/auth/session";
 
-const DEFAULT_GEMINI_DAILY_LIMIT = 10;
+const DEFAULT_GEMINI_DAILY_LIMIT = 20;
 
 export const getGeminiDailyLimit = () => {
     const value = Number(process.env.GEMINI_DAILY_LIMIT);
@@ -78,10 +78,7 @@ export const consumeGeminiGeneration = async () => {
 
     return {
         generationCount: Number(result.generation_count),
-        remaining: Math.max(
-            limit - Number(result.generation_count),
-            0,
-        ),
+        remaining: Math.max(limit - Number(result.generation_count), 0),
         limit,
     };
 };

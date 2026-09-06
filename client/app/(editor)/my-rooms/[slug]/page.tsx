@@ -693,6 +693,7 @@ export default function Page({
                             setGeneratedWords([]);
                             setShowImportInput(false);
                         }}
+                        disabled={isGeminiUsageLoading || isGeminiLimitReached}
                         iconName="wandSparkles"
                     />
 
@@ -768,11 +769,7 @@ export default function Page({
                             />
                             <Button
                                 loading={isGenerating}
-                                disabled={
-                                    !generationPrompt ||
-                                    isGeminiUsageLoading ||
-                                    isGeminiLimitReached
-                                }
+                                disabled={!generationPrompt}
                                 onClick={async () => {
                                     setIsGenerating(true);
                                     setGenerationError("");
