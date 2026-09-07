@@ -418,7 +418,15 @@ export default function Page({
                     </div>
                 </Button>
                 <Button
-                    onClick={() => setShowVisibilitySettings(true)}
+                    onClick={() => {
+                        if (roomPassword) setIsPrivate(true);
+                        else setIsPrivate(false);
+
+                        setNewPassword("");
+                        setConfirmPassword("");
+
+                        setShowVisibilitySettings(true);
+                    }}
                     variant="text"
                     className="h-full"
                 >
